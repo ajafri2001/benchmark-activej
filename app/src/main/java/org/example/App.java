@@ -8,6 +8,7 @@ import io.activej.http.HttpResponse;
 import io.activej.inject.annotation.Provides;
 import io.activej.launcher.Launcher;
 import io.activej.launchers.http.HttpServerLauncher;
+import spark.Spark;
 
 public class App {
 
@@ -20,10 +21,30 @@ public class App {
                     .withPlainText("Hello World")
                     .toPromise();
         }
+        public static void run(String[] args) throws Exception {
+            Launcher launcher = new HttpHelloWorldExample();
+            launcher.launch(args);
+        }
+    }
+
+    public static final class Spark11{
+        public static void run(String[] args){
+            Spark.port(8080);
+            Spark.get( "/", (req,resp) -> "Hello World");
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        Launcher launcher = new HttpHelloWorldExample();
-        launcher.launch(args);
+        if ( args.length == 0 ){
+            System.err.println("Use 'a' to use activej or anything else for spark");
+            System.exit(0);
+        }
+        if ( "a".equals( args[0] ) ){
+            System.out.println("Running Activej");
+            HttpHelloWorldExample.run(args);
+        } else {
+            System.out.println("Running Spark11");
+            Spark11.run(args);
+        }
     }
 }
