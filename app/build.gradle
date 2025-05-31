@@ -23,10 +23,8 @@ dependencies {
     implementation 'io.activej:activej-launchers-http:6.0-rc2'
 
     implementation 'org.slf4j:slf4j-simple:2.1.0-alpha1'
-
     implementation 'org.zoomba-lang:spark-core:3.0.2'
 
-    implementation 'org.eclipse.jetty:jetty-server:12.1.0.beta0'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
