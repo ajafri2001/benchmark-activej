@@ -9,7 +9,13 @@ import io.activej.inject.annotation.Provides;
 import io.activej.launchers.http.MultithreadedHttpServerLauncher;
 import io.activej.worker.annotation.Worker;
 import io.activej.worker.annotation.WorkerId;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import spark.Spark;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class App {
 
@@ -37,6 +43,38 @@ public class App {
         }
     }
 
+    public static final class Jetty12{
+
+        public static void run(String[] args) throws Exception {
+            QueuedThreadPool threadPool = new QueuedThreadPool();
+            threadPool.setName("server");
+            // Create a Server instance.
+            Server server = new Server(threadPool);
+            // Create a ServerConnector to accept connections from clients.
+            Connector connector = new ServerConnector(server);
+            ((ServerConnector)connector).setPort(8080);
+            // Add the Connector to the Server
+            server.addConnector(connector);
+
+            // Set a simple Handler to handle requests/responses.
+            server.setHandler(new Handler.Abstract()
+            {
+                @Override
+                public boolean handle(Request request, Response response, Callback callback)
+                {
+                    final ByteBuffer resp = ByteBuffer.wrap( "Hello World".getBytes(StandardCharsets.UTF_8));
+                    response.write(true, resp,  Callback.NOOP );
+                    // Succeed the callback to signal that the
+                    // request/response processing is complete.
+                    callback.succeeded();
+                    return true;
+                }
+            });
+
+            server.start();
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         if ( args.length == 0 ){
             System.err.println("Use 'a' to use activej or anything else for spark");
@@ -51,6 +89,10 @@ public class App {
             case "s" :
                 System.out.println("Running Spark11");
                 Spark11.run(args);
+                break;
+            case "j" :
+                System.out.println("Running Raw Jetty12");
+                Jetty12.run(args);
                 break;
         }
     }
