@@ -6,30 +6,33 @@ package org.example;
 import io.activej.http.AsyncServlet;
 import io.activej.http.HttpResponse;
 import io.activej.inject.annotation.Provides;
-import io.activej.launcher.Launcher;
-import io.activej.launchers.http.HttpServerLauncher;
+import io.activej.launchers.http.MultithreadedHttpServerLauncher;
+import io.activej.worker.annotation.Worker;
+import io.activej.worker.annotation.WorkerId;
 import spark.Spark;
 
 public class App {
 
-    public static final class HttpHelloWorldExample extends HttpServerLauncher {
+    public static final class HttpHelloWorldExample extends MultithreadedHttpServerLauncher {
 
         @Provides
-        AsyncServlet servlet() {
-
+        @Worker
+        AsyncServlet servlet ( @WorkerId int workerId){
             return request -> HttpResponse.ok200()
                     .withPlainText("Hello World")
                     .toPromise();
         }
-        public static void run(String[] args) throws Exception {
-            Launcher launcher = new HttpHelloWorldExample();
-            launcher.launch(args);
+
+        public static void run (String[]args) throws Exception {
+            HttpHelloWorldExample example = new HttpHelloWorldExample();
+            example.launch(args);
         }
     }
 
     public static final class Spark11{
         public static void run(String[] args){
             Spark.port(8080);
+            Spark.useVirtualThread(true);
             Spark.get( "/", (req,resp) -> "Hello World");
         }
     }
@@ -39,12 +42,16 @@ public class App {
             System.err.println("Use 'a' to use activej or anything else for spark");
             System.exit(0);
         }
-        if ( "a".equals( args[0] ) ){
-            System.out.println("Running Activej");
-            HttpHelloWorldExample.run(args);
-        } else {
-            System.out.println("Running Spark11");
-            Spark11.run(args);
+        switch (args[0]){
+            case "a" :
+                System.out.println("Running Activej");
+                HttpHelloWorldExample.run(args);
+                break;
+
+            case "s" :
+                System.out.println("Running Spark11");
+                Spark11.run(args);
+                break;
         }
     }
 }
